@@ -1,0 +1,16 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: python3 scripts/lint_spec.py
+      - run: cargo test -p krowmail-core
+      - run: cargo clippy -p krowmail-core -- -D warnings
