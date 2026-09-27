@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Krowmail server-to-server
+  version: 0.1.0
+  description: >
+    发件服务器向收件域名登记的端点提交信封。签名用 HTTP Message Signatures
+    （RFC 9421）的一个固定子集，算法是 Ed25519。keyid 形如 `域名/keyid`。
+    覆盖组件固定为 @method、@path、content-digest。验签失败必须拒收。
+paths:
+  /krowmail/v1/inbound:
+    post:
+      operationId: inbound
+      parameters:
+        - in: header
+          name: Content-Digest
+          required: true
+          schema: { type: string }
+        - in: header
+          name: Signature-Input
+          required: true
+          schema: { type: string }
+        - in: header
+          name: Signature
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./envelope.schema.json
+      responses:
+        "202":
+          description: 已收下。未登记域名进入隔离区且不唤醒。
+        "401":
+          description: 验签失败
+  /.well-known/krowmail:
+    get:
+      operationId: wellKnown
+      responses:
+        "200":
+          description: 自报公钥。未在根节点登记时只能得到最低信任。
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [domain, endpoint, public_key, segment_count]
+                properties:
+                  domain: { type: string }
+                  endpoint: { type: string }
+                  public_key: { type: string }
+                  key_id: { type: string }
+                  segment_count: { type: integer }

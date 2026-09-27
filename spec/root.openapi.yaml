@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: Krowmail root
+  version: 0.1.0
+  description: >
+    根节点只解析域名。它不在信件的传输路径上，也不接收本地部分。
+    登记过的域名返回投递端点、公钥、段数和信誉。没登记的域名可以自报
+    `/.well-known/krowmail`，信任等级最低。
+paths:
+  /v1/domains/{domain}:
+    get:
+      operationId: getDomain
+      parameters:
+        - in: path
+          name: domain
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: 域名记录
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [domain, endpoint, public_key, segment_count, reputation, registered]
+                properties:
+                  domain: { type: string }
+                  endpoint: { type: string }
+                  public_key: { type: string }
+                  key_id: { type: string }
+                  segment_count: { type: integer }
+                  reputation: { type: integer }
+                  registered: { type: boolean }
+        "404":
+          description: 未登记
+  /v1/domains:
+    post:
+      operationId: registerDomain
+      description: 用 DNS TXT `_krowmail.<domain>` 证明域名归属后登记。
+      responses:
+        "201":
+          description: 已登记
+  /v1/domains/{domain}/keys:
+    post:
+      operationId: rotateKey
+      parameters:
+        - in: path
+          name: domain
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: 公钥已轮换
+  /v1/reports:
+    post:
+      operationId: reportAbuse
+      responses:
+        "202":
+          description: 已记录举报

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Krow-labs/krowmail/spec/envelope.schema.json",
+  "title": "KrowmailEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "from", "to", "body", "created_at"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "from": { "type": "string", "minLength": 3 },
+    "to": { "type": "string", "minLength": 3 },
+    "subject": { "type": "string" },
+    "body": { "type": "string" },
+    "thread_id": { "type": ["string", "null"] },
+    "in_reply_to": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "minLength": 1 },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "href": { "type": "string" }
+        }
+      }
+    }
+  }
+}

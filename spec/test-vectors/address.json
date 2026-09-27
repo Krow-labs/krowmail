@@ -1,0 +1,223 @@
+{
+  "source": "krowworker/services/krowworker-service/src/address.rs tests around line 850",
+  "cases": [
+    {
+      "id": "chinese-three",
+      "fn": "parse_syntax",
+      "input": "大风#PST#道哥@krow.cn",
+      "domain": "krow.cn",
+      "expect": { "kind": "friendly", "member": "大风", "team": "PST", "owner": "道哥" }
+    },
+    {
+      "id": "mixed-numeric",
+      "fn": "parse_syntax",
+      "input": "大风#10088#100001@krow.cn",
+      "domain": "krow.cn",
+      "expect": { "kind": "friendly", "member": "大风", "team": "10088", "owner": "100001" }
+    },
+    {
+      "id": "fullwidth-mailto",
+      "fn": "parse_syntax",
+      "input": "  mailto:<大风＃ＰＳＴ＃道哥＠ｋｒｏｗ．ｃｎ>  ",
+      "domain": "krow.cn",
+      "expect": { "kind": "friendly", "member": "大风", "team": "PST", "owner": "道哥" }
+    },
+    {
+      "id": "legacy-uuid",
+      "fn": "parse_syntax",
+      "profile": "krow.cn-local",
+      "input": "krow:3641e9bb-0b13-44c2-81e7-b4cf0b667746/962452f9-b8c5-4385-a83c-4af206421218/5cd43a10-e6fc-49cf-aaec-ae18b6619d5c",
+      "domain": "krow.cn",
+      "expect": {
+        "kind": "legacy",
+        "user": "3641e9bb-0b13-44c2-81e7-b4cf0b667746",
+        "team": "962452f9-b8c5-4385-a83c-4af206421218",
+        "member": "5cd43a10-e6fc-49cf-aaec-ae18b6619d5c"
+      }
+    },
+    {
+      "id": "legacy-uuid-padded",
+      "fn": "parse_syntax",
+      "profile": "krow.cn-local",
+      "input": "  krow:3641e9bb-0b13-44c2-81e7-b4cf0b667746/962452f9-b8c5-4385-a83c-4af206421218/5cd43a10-e6fc-49cf-aaec-ae18b6619d5c  ",
+      "domain": "krow.cn",
+      "expect": {
+        "kind": "legacy",
+        "user": "3641e9bb-0b13-44c2-81e7-b4cf0b667746",
+        "team": "962452f9-b8c5-4385-a83c-4af206421218",
+        "member": "5cd43a10-e6fc-49cf-aaec-ae18b6619d5c"
+      }
+    },
+    {
+      "id": "wrong-domain",
+      "fn": "parse_syntax",
+      "input": "大风#PST#道哥@example.com",
+      "domain": "krow.cn",
+      "error_contains": "域名不是"
+    },
+    {
+      "id": "legacy-not-uuid",
+      "fn": "parse_syntax",
+      "profile": "krow.cn-local",
+      "input": "krow:not-a-uuid/x/y",
+      "domain": "krow.cn",
+      "error": true
+    },
+    {
+      "id": "pure-digits",
+      "fn": "validate_address_name",
+      "input": "100231",
+      "error_contains": "纯数字"
+    },
+    {
+      "id": "zero-width",
+      "fn": "validate_address_name",
+      "input": "大\u200b风",
+      "error_contains": "零宽"
+    },
+    {
+      "id": "bidi",
+      "fn": "validate_address_name",
+      "input": "大\u202e风",
+      "error_contains": "双向"
+    },
+    {
+      "id": "space",
+      "fn": "validate_address_name",
+      "input": "有 空格",
+      "error": true
+    },
+    {
+      "id": "slash",
+      "fn": "validate_address_name",
+      "input": "a/b",
+      "error": true
+    },
+    {
+      "id": "reserved-admin",
+      "fn": "validate_user_handle",
+      "input": "Admin",
+      "error": true
+    },
+    {
+      "id": "name-pst-ok",
+      "fn": "validate_address_name",
+      "input": "PST",
+      "expect": "ok"
+    },
+    {
+      "id": "name-chinese-ok",
+      "fn": "validate_address_name",
+      "input": "大风",
+      "expect": "ok"
+    },
+    {
+      "id": "display-at",
+      "fn": "display_name_banned",
+      "input": "a@b",
+      "expect": true
+    },
+    {
+      "id": "display-fullwidth-hash",
+      "fn": "display_name_banned",
+      "input": "a＃b",
+      "expect": true
+    },
+    {
+      "id": "display-ok",
+      "fn": "display_name_banned",
+      "input": "大风",
+      "expect": false
+    },
+    {
+      "id": "decide-allow-external",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "allow", "trust": "external" }
+    },
+    {
+      "id": "decide-flag-off",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": false, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "flag_off" }
+    },
+    {
+      "id": "decide-policy-own",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "own", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "policy_own" }
+    },
+    {
+      "id": "decide-policy-contacts",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "contacts", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "policy_contacts" }
+    },
+    {
+      "id": "decide-contacts-known",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "contacts", "known_contact": true, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "allow", "trust": "external" }
+    },
+    {
+      "id": "decide-blocked",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": true, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "blocked" }
+    },
+    {
+      "id": "decide-rate-daily",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 50, "hourly_inbox": 0 },
+      "expect": { "decision": "rate_daily" }
+    },
+    {
+      "id": "decide-rate-hourly",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 30 },
+      "expect": { "decision": "rate_hourly" }
+    },
+    {
+      "id": "decide-rate-team",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 10, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "rate_team" }
+    },
+    {
+      "id": "decide-same-owner",
+      "fn": "decide",
+      "input": { "same_owner": true, "flat_flag": true, "cross_open": false, "policy": "own", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "allow", "trust": "department" }
+    },
+    {
+      "id": "decide-flat-off",
+      "fn": "decide",
+      "input": { "same_owner": true, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "flat_off" }
+    },
+    {
+      "id": "uri-encoded",
+      "fn": "parse_open",
+      "input": "krowmail:大风%23PST%23道哥@krow.cn",
+      "expect": { "segments": ["大风", "PST", "道哥"], "domain": "krow.cn" }
+    },
+    {
+      "id": "open-one-segment",
+      "fn": "parse_open",
+      "input": "agent@lab.test",
+      "expect": { "segments": ["agent"], "domain": "lab.test" }
+    },
+    {
+      "id": "open-two-segments",
+      "fn": "parse_open",
+      "input": "agent#owner@lab.test",
+      "expect": { "segments": ["agent", "owner"], "domain": "lab.test" }
+    },
+    {
+      "id": "open-four-rejected",
+      "fn": "parse_open",
+      "input": "a#b#c#d@lab.test",
+      "error": true
+    }
+  ]
+}

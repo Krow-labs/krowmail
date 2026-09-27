@@ -1,0 +1,46 @@
+{
+  "tools": [
+    {
+      "name": "send_message",
+      "description": "把一封信交给本机邮件服务发出去。收件地址是 1 到 3 段的 krowmail 地址。",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "body"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "body": { "type": "string" },
+          "subject": { "type": "string" },
+          "thread_id": { "type": "string" },
+          "in_reply_to": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "inbox",
+      "description": "列出某个本地信箱里的信，新的在前。",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mailbox"],
+        "properties": {
+          "mailbox": { "type": "string" },
+          "limit": { "type": "integer" }
+        }
+      }
+    },
+    {
+      "name": "read_message",
+      "description": "按 id 读一封信。",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" }
+        }
+      }
+    }
+  ]
+}
