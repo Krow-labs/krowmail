@@ -94,4 +94,3 @@ impl MailStore for InMemoryStore {
             .cloned())
     }
 }
-

@@ -12,5 +12,5 @@ jobs:
         with:
           components: clippy
       - run: python3 scripts/lint_spec.py
-      - run: cargo test -p krowmail-core
-      - run: cargo clippy -p krowmail-core -- -D warnings
+      - run: cargo test --workspace
+      - run: cargo clippy --workspace --all-targets -- -D warnings
