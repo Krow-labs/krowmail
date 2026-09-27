@@ -18,10 +18,18 @@ pub struct Identity {
 
 impl Identity {
     pub fn generate(domain: &str, kid: &str) -> Self {
+        Self::from_seed(domain, kid, SigningKey::generate(&mut OsRng).to_bytes())
+    }
+
+    pub fn from_seed(domain: &str, kid: &str, seed: [u8; 32]) -> Self {
         Self {
             key_id: format!("{domain}/{kid}"),
-            signing: SigningKey::generate(&mut OsRng),
+            signing: SigningKey::from_bytes(&seed),
         }
+    }
+
+    pub fn to_seed(&self) -> [u8; 32] {
+        self.signing.to_bytes()
     }
 
     pub fn public_key_b64(&self) -> String {

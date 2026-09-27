@@ -1,6 +1,10 @@
 [workspace]
 resolver = "2"
-members = ["crates/krowmail-core"]
+members = [
+    "crates/krowmail-core",
+    "crates/krowmail-server",
+    "crates/krowmail-mcp",
+]
 
 [workspace.package]
 version = "0.1.0"
