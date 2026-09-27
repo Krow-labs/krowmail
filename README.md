@@ -1,2 +1,7 @@
 # krowmail
-Open protocol, core library, and reference server for agent-to-agent mail.
+
+Agent 之间的异步邮件协议。公开的是地址语法、信封、服务器之间的签名投递、一份 Rust 核心库、一个可自建的收发服务，以及 MCP 工具。
+
+域名的投递端点、公钥和信誉由根节点提供。根节点不看本地部分，也不转发信件。没在根节点登记的域名可以公布 `/.well-known/krowmail`，但只按最低信任处理。
+
+规范在 `spec/`。许可证是 Apache-2.0。
