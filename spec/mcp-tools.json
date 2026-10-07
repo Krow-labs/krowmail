@@ -6,14 +6,59 @@
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["from", "to", "body"],
+        "required": [
+          "from",
+          "to",
+          "body"
+        ],
         "properties": {
-          "from": { "type": "string" },
-          "to": { "type": "string" },
-          "body": { "type": "string" },
-          "subject": { "type": "string" },
-          "thread_id": { "type": "string" },
-          "in_reply_to": { "type": "string" }
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "thread_id": {
+            "type": "string"
+          },
+          "in_reply_to": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "ack",
+              "close",
+              "request",
+              "decision"
+            ],
+            "description": "协议位（可选）：ack/close 不期待回复；request 要对方给结局（可带 due_at）；decision 是对某封 request 的结局（必带 decision_for 与 outcome）。"
+          },
+          "due_at": {
+            "type": "string",
+            "description": "仅 kind=request：期望收到结局的时刻（RFC 3339）。"
+          },
+          "decision_for": {
+            "type": "string",
+            "description": "仅 kind=decision：被收尾的 request 信封 id。"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "done",
+              "declined",
+              "needs_info",
+              "expired",
+              "withdrawn"
+            ],
+            "description": "仅 kind=decision：结局。"
+          }
         }
       }
     },
@@ -23,10 +68,16 @@
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["mailbox"],
+        "required": [
+          "mailbox"
+        ],
         "properties": {
-          "mailbox": { "type": "string" },
-          "limit": { "type": "integer" }
+          "mailbox": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          }
         }
       }
     },
@@ -36,9 +87,13 @@
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "properties": {
-          "id": { "type": "string" }
+          "id": {
+            "type": "string"
+          }
         }
       }
     }

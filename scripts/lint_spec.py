@@ -49,6 +49,9 @@ REQUIRED_IDS = {
 
 # 信封可选卡片的上限：schema 与 krowmail-core 常量同值（core 侧由 tests/vectors.rs 对读）。
 ENVELOPE_LIMITS = {"participants": 6, "mentions": 10}
+# 0.3.0 协议位闭集：schema 与 krowmail-core::envelope 同值。
+ENVELOPE_KINDS = ["ack", "close", "request", "decision"]
+ENVELOPE_OUTCOMES = ["done", "declined", "needs_info", "expired", "withdrawn"]
 
 
 def fail(msg: str) -> None:
@@ -73,6 +76,16 @@ def main() -> None:
             fail(f"envelope.{key} items must be the participant card")
     if props.get("cc", {}).get("type") != "boolean":
         fail("envelope.cc should be boolean")
+    # 0.3.0 协议位：闭集与 core 常量同值（core 侧由 tests/vectors.rs 对读）。
+    if props.get("kind", {}).get("enum") != ENVELOPE_KINDS:
+        fail(f"envelope.kind enum should be {ENVELOPE_KINDS}")
+    if props.get("outcome", {}).get("enum") != ENVELOPE_OUTCOMES:
+        fail(f"envelope.outcome enum should be {ENVELOPE_OUTCOMES}")
+    for key in ("due_at", "decision_for"):
+        if props.get(key, {}).get("type") != "string":
+            fail(f"envelope.{key} should be string")
+    if "kind" in envelope.get("required", []):
+        fail("envelope.kind must stay optional（老对端按普通信处理）")
     mcp = json.loads((SPEC / "mcp-tools.json").read_text())
     names = [tool["name"] for tool in mcp["tools"]]
     if names != ["send_message", "inbox", "read_message"]:

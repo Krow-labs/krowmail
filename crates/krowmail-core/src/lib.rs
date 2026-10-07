@@ -11,7 +11,8 @@ pub use address::{
     validate_address_name, validate_user_handle, LegacyAddress, OpenAddress, Syntax,
 };
 pub use envelope::{
-    Attachment, Envelope, Participant, MAX_CC, MAX_ENVELOPE_MENTIONS, MAX_ENVELOPE_PARTICIPANTS,
+    Attachment, Envelope, Participant, ENVELOPE_KINDS, ENVELOPE_OUTCOMES, MAX_CC,
+    MAX_ENVELOPE_MENTIONS, MAX_ENVELOPE_PARTICIPANTS,
 };
 pub use policy::{
     decide, CrossDecision, CrossInput, DefaultPolicy, MailPolicy, Policy,
