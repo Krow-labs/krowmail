@@ -7,10 +7,12 @@ mod sign;
 mod traits;
 
 pub use address::{
-    display_name_banned, fold_key, parse_open, parse_syntax, validate_address_name,
-    validate_user_handle, LegacyAddress, OpenAddress, Syntax,
+    display_name_banned, fold_key, parse_open, parse_shorthand, parse_syntax,
+    validate_address_name, validate_user_handle, LegacyAddress, OpenAddress, Syntax,
 };
-pub use envelope::{Attachment, Envelope};
+pub use envelope::{
+    Attachment, Envelope, Participant, MAX_CC, MAX_ENVELOPE_MENTIONS, MAX_ENVELOPE_PARTICIPANTS,
+};
 pub use policy::{
     decide, CrossDecision, CrossInput, DefaultPolicy, MailPolicy, Policy,
     CROSS_TEAM_WINDOW_MINUTES, MAX_CROSS_TEAM_SENDS, MAX_DAILY_OWNER_PAIR, MAX_HOURLY_EXTERNAL,

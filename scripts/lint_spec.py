@@ -39,7 +39,16 @@ REQUIRED_IDS = {
     "decide-same-owner",
     "decide-flat-off",
     "uri-encoded",
+    "shorthand-two",
+    "shorthand-own-domain",
+    "shorthand-other-domain",
+    "shorthand-three-is-full",
+    "decide-policy-allowlist",
+    "decide-allowlist-listed",
 }
+
+# 信封可选卡片的上限：schema 与 krowmail-core 常量同值（core 侧由 tests/vectors.rs 对读）。
+ENVELOPE_LIMITS = {"participants": 6, "mentions": 10}
 
 
 def fail(msg: str) -> None:
@@ -51,6 +60,19 @@ def main() -> None:
     envelope = json.loads((SPEC / "envelope.schema.json").read_text())
     if envelope.get("required") != ["id", "from", "to", "body", "created_at"]:
         fail("envelope required fields drifted")
+    if envelope.get("additionalProperties") is not False:
+        fail("envelope must stay closed (additionalProperties: false)")
+    props = envelope["properties"]
+    participant = envelope.get("$defs", {}).get("participant", {})
+    if participant.get("additionalProperties") is not False or participant.get("required") != ["address"]:
+        fail("envelope $defs.participant must be closed and require address")
+    for key, cap in ENVELOPE_LIMITS.items():
+        if props.get(key, {}).get("maxItems") != cap:
+            fail(f"envelope.{key}.maxItems should be {cap}")
+        if props[key].get("items") != {"$ref": "#/$defs/participant"}:
+            fail(f"envelope.{key} items must be the participant card")
+    if props.get("cc", {}).get("type") != "boolean":
+        fail("envelope.cc should be boolean")
     mcp = json.loads((SPEC / "mcp-tools.json").read_text())
     names = [tool["name"] for tool in mcp["tools"]]
     if names != ["send_message", "inbox", "read_message"]:

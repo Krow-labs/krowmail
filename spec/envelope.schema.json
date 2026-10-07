@@ -25,6 +25,34 @@
           "href": { "type": "string" }
         }
       }
+    },
+    "participants": {
+      "description": "在场者（主收件人 + 抄送），最多 1 + 5 人。缺省 = 单收件人。每位抄送各收到一份独立签名的信封。",
+      "type": "array",
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/participant" }
+    },
+    "mentions": {
+      "description": "正文里 @地址 抽出的卡片，只暴露给读信端，不投递。",
+      "type": "array",
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/participant" }
+    },
+    "cc": {
+      "description": "这一份是抄送副本（收件人不是主收件人）。缺省 false。",
+      "type": "boolean"
+    }
+  },
+  "$defs": {
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["address"],
+      "properties": {
+        "address": { "type": "string", "minLength": 3, "description": "完整的开放地址（带 @域名）。" },
+        "name": { "type": "string", "description": "展示名，可空。" },
+        "role": { "type": "string", "enum": ["to", "cc", ""], "description": "to = 主收件人，cc = 抄送；提及卡片留空。" }
+      }
     }
   }
 }

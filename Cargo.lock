@@ -713,7 +713,7 @@ dependencies = [
 
 [[package]]
 name = "krowmail-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
  "ed25519-dalek",
@@ -726,7 +726,7 @@ dependencies = [
 
 [[package]]
 name = "krowmail-mcp"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "reqwest",
  "serde_json",
@@ -734,7 +734,7 @@ dependencies = [
 
 [[package]]
 name = "krowmail-server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "chrono",

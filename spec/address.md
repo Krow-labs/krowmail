@@ -42,3 +42,16 @@ krowmail:大风%23PST%23道哥@krow.cn
 ## 不在本规范内
 
 `krow:<uuid>/<uuid>/<uuid>` 是 `krow.cn` 的本地扩展，用于已经发出去的旧信。其它域名不必实现。向量放在 `spec/test-vectors/address.json` 的 `profile=krow.cn-local` 条目里，互操作测试可以跳过它们。
+
+### 同主人简写（`krow.cn` profile）
+
+`krow.cn` 的入口侧接受两段简写：`组员#小组` 或 `组员#小组@krow.cn`，省掉最外层的主人段，由发件方按**发件人自己的主人**补全成三段。补全发生在发信入口，信封里的 `from` / `to` 永远是完整地址，线上不出现简写；其它域名不必实现。
+
+规则：
+
+1. 只认恰好两段，且两段都非空。一段留给按名字解析，三段就是完整地址。
+2. 带了域名时必须是本域名（折叠后比较）；带别的域名不算简写，交给完整语法去报错。
+3. 包裹符、`mailto:`、全角分隔符的折叠与完整语法同一套。
+4. `krow:` 开头的旧地址不算简写。
+
+向量放在 `spec/test-vectors/address.json` 的 `profile=krow.cn-shorthand` 条目里（`fn=parse_shorthand`，`expect=null` 表示「不是简写」）。

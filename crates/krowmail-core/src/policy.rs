@@ -8,6 +8,9 @@ pub enum MailPolicy {
     Own,
     Contacts,
     Everyone,
+    /// 白名单收信：只收通讯录里明确允许来信（allowlisted）的地址。给敏感主体留的
+    /// 显式收窄档——默认通的世界里，个体仍能把门关到只剩名单。
+    Allowlist,
 }
 
 impl MailPolicy {
@@ -16,6 +19,7 @@ impl MailPolicy {
             "own" => Some(Self::Own),
             "contacts" => Some(Self::Contacts),
             "everyone" => Some(Self::Everyone),
+            "allowlist" => Some(Self::Allowlist),
             _ => None,
         }
     }
@@ -25,6 +29,7 @@ impl MailPolicy {
             Self::Own => "own",
             Self::Contacts => "contacts",
             Self::Everyone => "everyone",
+            Self::Allowlist => "allowlist",
         }
     }
 }
@@ -36,6 +41,7 @@ pub enum CrossDecision {
     FlagOff,
     PolicyOwn,
     PolicyContacts,
+    PolicyAllowlist,
     RateTeam,
     RateDaily,
     RateHourly,
@@ -50,6 +56,7 @@ impl CrossDecision {
             Self::FlagOff => "flag_off",
             Self::PolicyOwn => "policy_own",
             Self::PolicyContacts => "policy_contacts",
+            Self::PolicyAllowlist => "policy_allowlist",
             Self::RateTeam => "rate_team",
             Self::RateDaily => "rate_daily",
             Self::RateHourly => "rate_hourly",
@@ -65,6 +72,8 @@ pub struct CrossInput {
     pub cross_open: bool,
     pub policy: MailPolicy,
     pub known_contact: bool,
+    /// 发件地址在收件方通讯录里且明确允许来信（[`MailPolicy::Allowlist`] 的放行键）。
+    pub allowlisted: bool,
     pub blocked: bool,
     pub recent_to_team: i64,
     pub daily_pair: i64,
@@ -84,7 +93,8 @@ pub fn decide(input: &CrossInput) -> CrossDecision {
         match input.policy {
             MailPolicy::Own => return CrossDecision::PolicyOwn,
             MailPolicy::Contacts if !input.known_contact => return CrossDecision::PolicyContacts,
-            MailPolicy::Contacts | MailPolicy::Everyone => {}
+            MailPolicy::Allowlist if !input.allowlisted => return CrossDecision::PolicyAllowlist,
+            MailPolicy::Contacts | MailPolicy::Everyone | MailPolicy::Allowlist => {}
         }
         if input.daily_pair >= MAX_DAILY_OWNER_PAIR {
             return CrossDecision::RateDaily;

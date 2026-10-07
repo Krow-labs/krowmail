@@ -130,6 +130,37 @@ pub fn parse_syntax(raw: &str, domain: &str) -> Result<Syntax, String> {
     })
 }
 
+/// 同主人简写（`krow.cn` profile，不在公共语法里）：`组员#小组` 或 `组员#小组@本域名`。
+/// 省掉最外层的主人段，由调用方按**发件人自己的主人**补全成三段完整地址——补全发生在
+/// 入口侧，信封里的 `from` / `to` 永远是完整地址，其它域名不必实现。只认两段：一段（裸名）
+/// 留给调用方按名字解析；三段是完整地址走 [`parse_syntax`]。带了别的域名不算简写
+/// （返回 `None`，让完整语法去报「域名不是 …」）。折叠规则与完整语法同一套。
+pub fn parse_shorthand(raw: &str, domain: &str) -> Option<(String, String)> {
+    let text = strip_wrappers(raw).ok()?;
+    if text
+        .get(..5)
+        .is_some_and(|p| p.eq_ignore_ascii_case("krow:"))
+    {
+        return None;
+    }
+    let folded = fold_separators(&text);
+    let local = match folded.rsplit_once('@') {
+        Some((local, dom)) => {
+            let expected = fold_key(domain).unwrap_or_else(|| domain.to_lowercase());
+            if fold_key(dom).unwrap_or_default() != expected {
+                return None;
+            }
+            local.to_string()
+        }
+        None => folded,
+    };
+    let segments: Vec<&str> = local.split('#').map(str::trim).collect();
+    if segments.len() != 2 || segments.iter().any(|s| s.is_empty()) {
+        return None;
+    }
+    Some((segments[0].to_string(), segments[1].to_string()))
+}
+
 /// 公共语法：1 到 3 段，不限定域名。`krowmail:` 里的 `#` 必须先写成 `%23`。
 pub fn parse_open(raw: &str) -> Result<OpenAddress, String> {
     let text = strip_wrappers(raw)?;
@@ -240,4 +271,48 @@ fn percent_decode(raw: &str) -> Result<String, String> {
         }
     }
     String::from_utf8(out).map_err(|_| "百分号编码不是 UTF-8".into())
+}
+
+#[cfg(test)]
+mod shorthand_tests {
+    use super::*;
+
+    #[test]
+    fn two_segments_without_domain_is_shorthand() {
+        assert_eq!(
+            parse_shorthand("东坡#人间词话", "krow.cn"),
+            Some(("东坡".into(), "人间词话".into()))
+        );
+        // 全角 # / 首尾空白 / 包裹符都按完整语法同一套折叠
+        assert_eq!(
+            parse_shorthand("  <东坡＃人间词话>  ", "krow.cn"),
+            Some(("东坡".into(), "人间词话".into()))
+        );
+    }
+
+    #[test]
+    fn two_segments_with_own_domain_is_shorthand_other_domain_is_not() {
+        assert_eq!(
+            parse_shorthand("东坡#人间词话@krow.cn", "krow.cn"),
+            Some(("东坡".into(), "人间词话".into()))
+        );
+        assert!(parse_shorthand("东坡#人间词话@KROW.CN", "krow.cn").is_some());
+        assert_eq!(
+            parse_shorthand("东坡#人间词话@elsewhere.example", "krow.cn"),
+            None
+        );
+    }
+
+    #[test]
+    fn one_or_three_segments_and_legacy_are_not_shorthand() {
+        assert_eq!(parse_shorthand("东坡", "krow.cn"), None);
+        assert_eq!(
+            parse_shorthand("东坡#人间词话#100095@krow.cn", "krow.cn"),
+            None
+        );
+        assert_eq!(parse_shorthand("东坡#人间词话#100095", "krow.cn"), None);
+        assert_eq!(parse_shorthand("krow:a/b/c", "krow.cn"), None);
+        assert_eq!(parse_shorthand("#人间词话", "krow.cn"), None);
+        assert_eq!(parse_shorthand("东坡#", "krow.cn"), None);
+    }
 }
