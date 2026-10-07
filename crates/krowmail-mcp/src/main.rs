@@ -33,7 +33,7 @@ fn main() {
             "initialize" => serde_json::json!({
                 "protocolVersion": "2024-11-05",
                 "capabilities": { "tools": {} },
-                "serverInfo": { "name": "krowmail-mcp", "version": "0.1.0" }
+                "serverInfo": { "name": "krowmail-mcp", "version": env!("CARGO_PKG_VERSION") }
             }),
             "tools/list" => serde_json::json!({ "tools": tools["tools"] }),
             "tools/call" => match call_tool(&client, &url, &req["params"]) {

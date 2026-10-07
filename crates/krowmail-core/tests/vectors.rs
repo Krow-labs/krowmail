@@ -1,6 +1,7 @@
 use krowmail_core::{
-    decide, display_name_banned, parse_open, parse_syntax, validate_address_name,
-    validate_user_handle, CrossDecision, CrossInput, MailPolicy, Syntax,
+    decide, display_name_banned, parse_open, parse_shorthand, parse_syntax, validate_address_name,
+    validate_user_handle, CrossDecision, CrossInput, MailPolicy, Syntax, MAX_ENVELOPE_MENTIONS,
+    MAX_ENVELOPE_PARTICIPANTS,
 };
 use serde_json::Value;
 
@@ -16,6 +17,7 @@ fn address_vectors() {
         match case["fn"].as_str().unwrap() {
             "parse_syntax" => check_parse_syntax(id, case),
             "parse_open" => check_parse_open(id, case),
+            "parse_shorthand" => check_parse_shorthand(id, case),
             "validate_address_name" => check_validate(id, case, validate_address_name),
             "validate_user_handle" => check_validate(id, case, validate_user_handle),
             "display_name_banned" => {
@@ -75,6 +77,21 @@ fn check_parse_syntax(id: &str, case: &Value) {
     }
 }
 
+fn check_parse_shorthand(id: &str, case: &Value) {
+    let got = parse_shorthand(
+        case["input"].as_str().unwrap(),
+        case["domain"].as_str().unwrap(),
+    );
+    let expect = &case["expect"];
+    if expect.is_null() {
+        assert_eq!(got, None, "{id}");
+        return;
+    }
+    let (member, team) = got.unwrap_or_else(|| panic!("{id}: expected shorthand"));
+    assert_eq!(member, expect["member"].as_str().unwrap(), "{id}");
+    assert_eq!(team, expect["team"].as_str().unwrap(), "{id}");
+}
+
 fn check_parse_open(id: &str, case: &Value) {
     let got = parse_open(case["input"].as_str().unwrap());
     if case.get("error").and_then(Value::as_bool) == Some(true) {
@@ -118,6 +135,11 @@ fn check_decide(id: &str, case: &Value) {
         cross_open: raw["cross_open"].as_bool().unwrap(),
         policy: MailPolicy::parse(raw["policy"].as_str().unwrap()).unwrap(),
         known_contact: raw["known_contact"].as_bool().unwrap(),
+        // 旧向量没有这个键：缺省 false，与线上「不在名单里」同义。
+        allowlisted: raw
+            .get("allowlisted")
+            .and_then(Value::as_bool)
+            .unwrap_or(false),
         blocked: raw["blocked"].as_bool().unwrap(),
         recent_to_team: raw["recent_to_team"].as_i64().unwrap(),
         daily_pair: raw["daily_pair"].as_i64().unwrap(),
@@ -129,4 +151,26 @@ fn check_decide(id: &str, case: &Value) {
     if let CrossDecision::Allow { trust } = got {
         assert_eq!(trust, expect["trust"].as_str().unwrap(), "{id}");
     }
+}
+
+/// 信封可选卡片的上限：`spec/envelope.schema.json` 的 `maxItems` 与 core 常量必须同值，
+/// 否则一边收下的信另一边会拒。
+#[test]
+fn envelope_schema_limits_match_core() {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../spec/envelope.schema.json"
+    );
+    let schema: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let props = &schema["properties"];
+    assert_eq!(
+        props["participants"]["maxItems"].as_u64().unwrap() as usize,
+        MAX_ENVELOPE_PARTICIPANTS
+    );
+    assert_eq!(
+        props["mentions"]["maxItems"].as_u64().unwrap() as usize,
+        MAX_ENVELOPE_MENTIONS
+    );
+    assert_eq!(props["cc"]["type"], "boolean");
+    assert_eq!(schema["additionalProperties"], false);
 }

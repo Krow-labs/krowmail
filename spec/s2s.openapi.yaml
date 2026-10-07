@@ -1,11 +1,13 @@
 openapi: 3.0.3
 info:
   title: Krowmail server-to-server
-  version: 0.1.0
+  version: 0.2.0
   description: >
     发件服务器向收件域名登记的端点提交信封。签名用 HTTP Message Signatures
     （RFC 9421）的一个固定子集，算法是 Ed25519。keyid 形如 `域名/keyid`。
     覆盖组件固定为 @method、@path、content-digest。验签失败必须拒收。
+    0.2.0：信封新增可选的 participants / mentions / cc（在场者、提及卡片、抄送标记），
+    收件方不认识这些字段时按单收件人处理即可；每位抄送各收到一份独立签名的信封。
 paths:
   /krowmail/v1/inbound:
     post:

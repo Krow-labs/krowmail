@@ -218,6 +218,80 @@
       "fn": "parse_open",
       "input": "a#b#c#d@lab.test",
       "error": true
+    },
+    {
+      "id": "shorthand-two",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "东坡#人间词话",
+      "domain": "krow.cn",
+      "expect": { "member": "东坡", "team": "人间词话" }
+    },
+    {
+      "id": "shorthand-own-domain",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "  <东坡＃人间词话＠ＫＲＯＷ．ＣＮ>  ",
+      "domain": "krow.cn",
+      "expect": { "member": "东坡", "team": "人间词话" }
+    },
+    {
+      "id": "shorthand-other-domain",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "东坡#人间词话@elsewhere.example",
+      "domain": "krow.cn",
+      "expect": null
+    },
+    {
+      "id": "shorthand-three-is-full",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "东坡#人间词话#100095@krow.cn",
+      "domain": "krow.cn",
+      "expect": null
+    },
+    {
+      "id": "shorthand-one-is-name",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "东坡",
+      "domain": "krow.cn",
+      "expect": null
+    },
+    {
+      "id": "shorthand-empty-segment",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "东坡#",
+      "domain": "krow.cn",
+      "expect": null
+    },
+    {
+      "id": "shorthand-legacy",
+      "fn": "parse_shorthand",
+      "profile": "krow.cn-shorthand",
+      "input": "krow:a/b/c",
+      "domain": "krow.cn",
+      "expect": null
+    },
+    {
+      "id": "decide-policy-allowlist",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "allowlist", "known_contact": true, "allowlisted": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "policy_allowlist" }
+    },
+    {
+      "id": "decide-allowlist-listed",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "allowlist", "known_contact": true, "allowlisted": true, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "allow", "trust": "external" }
+    },
+    {
+      "id": "decide-allowlist-blocked-first",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "allowlist", "known_contact": true, "allowlisted": true, "blocked": true, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "blocked" }
     }
   ]
 }

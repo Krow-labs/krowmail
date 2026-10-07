@@ -108,6 +108,9 @@ async fn send_mail(
         in_reply_to: req.in_reply_to,
         created_at: chrono::Utc::now().to_rfc3339(),
         attachments: Vec::new(),
+        participants: Vec::new(),
+        mentions: Vec::new(),
+        cc: false,
     };
     envelope.validate().map_err(bad)?;
     let bytes = serde_json::to_vec(&envelope).map_err(|err| bad(err.to_string()))?;
