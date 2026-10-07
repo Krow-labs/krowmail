@@ -41,6 +41,26 @@
     "cc": {
       "description": "这一份是抄送副本（收件人不是主收件人）。缺省 false。",
       "type": "boolean"
+    },
+    "kind": {
+      "description": "协议位（0.3.0）。缺省 = 普通信。ack / close 是不期待回复的确认与收尾；request 是要对方给出结局的请求（可带 due_at）；decision 是对某个 request 的结局（必带 decision_for 与 outcome）。收件方不认识这些值时按普通信处理即可。",
+      "type": "string",
+      "enum": ["ack", "close", "request", "decision"]
+    },
+    "due_at": {
+      "description": "仅 kind=request：请求方期望收到结局的时刻（RFC 3339）。只是期望，不是对收件方的强制；收件方实现可以据此提醒或到期判定。",
+      "type": "string",
+      "minLength": 1
+    },
+    "decision_for": {
+      "description": "仅 kind=decision：被收尾的那封 request 信封的 id。",
+      "type": "string",
+      "minLength": 1
+    },
+    "outcome": {
+      "description": "仅 kind=decision：结局。done 办了 / declined 明确拒绝 / needs_info 缺材料（请求方补齐后另发新请求）/ expired 到期未处理（由请求方或收件方的服务器判定）/ withdrawn 请求方撤回。",
+      "type": "string",
+      "enum": ["done", "declined", "needs_info", "expired", "withdrawn"]
     }
   },
   "$defs": {

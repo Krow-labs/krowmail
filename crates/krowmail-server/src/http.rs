@@ -82,6 +82,11 @@ struct SendBody {
     subject: String,
     thread_id: Option<String>,
     in_reply_to: Option<String>,
+    // 0.3.0 协议位（可选）：校验在 Envelope::validate 一处。
+    kind: Option<String>,
+    due_at: Option<String>,
+    decision_for: Option<String>,
+    outcome: Option<String>,
 }
 
 async fn send_mail(
@@ -111,6 +116,10 @@ async fn send_mail(
         participants: Vec::new(),
         mentions: Vec::new(),
         cc: false,
+        kind: req.kind,
+        due_at: req.due_at,
+        decision_for: req.decision_for,
+        outcome: req.outcome,
     };
     envelope.validate().map_err(bad)?;
     let bytes = serde_json::to_vec(&envelope).map_err(|err| bad(err.to_string()))?;

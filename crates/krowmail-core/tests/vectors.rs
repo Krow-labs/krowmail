@@ -1,7 +1,7 @@
 use krowmail_core::{
     decide, display_name_banned, parse_open, parse_shorthand, parse_syntax, validate_address_name,
-    validate_user_handle, CrossDecision, CrossInput, MailPolicy, Syntax, MAX_ENVELOPE_MENTIONS,
-    MAX_ENVELOPE_PARTICIPANTS,
+    validate_user_handle, CrossDecision, CrossInput, MailPolicy, Syntax, ENVELOPE_KINDS,
+    ENVELOPE_OUTCOMES, MAX_ENVELOPE_MENTIONS, MAX_ENVELOPE_PARTICIPANTS,
 };
 use serde_json::Value;
 
@@ -173,4 +173,24 @@ fn envelope_schema_limits_match_core() {
     );
     assert_eq!(props["cc"]["type"], "boolean");
     assert_eq!(schema["additionalProperties"], false);
+    // 0.3.0 协议位：闭集同值同序；kind 必须保持可选（老对端按普通信处理）。
+    let enum_of = |key: &str| -> Vec<String> {
+        props[key]["enum"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_str().unwrap().to_string())
+            .collect()
+    };
+    assert_eq!(enum_of("kind"), ENVELOPE_KINDS);
+    assert_eq!(enum_of("outcome"), ENVELOPE_OUTCOMES);
+    assert_eq!(props["due_at"]["type"], "string");
+    assert_eq!(props["decision_for"]["type"], "string");
+    let required: Vec<&str> = schema["required"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap())
+        .collect();
+    assert!(!required.contains(&"kind"));
 }
