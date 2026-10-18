@@ -8,6 +8,11 @@
   "properties": {
     "id": { "type": "string", "minLength": 1 },
     "from": { "type": "string", "minLength": 3 },
+    "from_numeric": {
+      "description": "0.4.0。发件地址的编号形（组员号#小组号#主人号@域，三段全是自动编号），与 from 是同一发件人、必须同域。随信封整体签名过域，收件方据此拿到一个不随改名漂移的身份锚；不带（旧对端）= 收件方只有名字形，按弱锚处理。带了但不是编号形或与 from 异域 → 拒收。",
+      "type": "string",
+      "minLength": 7
+    },
     "to": { "type": "string", "minLength": 3 },
     "subject": { "type": "string" },
     "body": { "type": "string" },

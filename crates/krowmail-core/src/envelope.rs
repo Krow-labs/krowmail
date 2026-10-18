@@ -36,6 +36,11 @@ pub const ENVELOPE_OUTCOMES: [&str; 5] = ["done", "declined", "needs_info", "exp
 pub struct Envelope {
     pub id: String,
     pub from: String,
+    /// 0.4.0：发件地址的**编号形**（`组员号#小组号#主人号@域`），与 `from` 是同一发件人。随信封整体
+    /// 签名过域，收件方据此拿到一个不随改名漂移的身份锚（强锚）；没带（旧对端）= 只有名字形，
+    /// 收件方按弱锚处理（是否自动合并联系人、是否继承授信由各自实现决定）。线上缺省不出现。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_numeric: Option<String>,
     pub to: String,
     #[serde(default)]
     pub subject: String,
@@ -81,6 +86,17 @@ impl Envelope {
         }
         if !self.from.contains('@') || !self.to.contains('@') {
             return Err("信封地址缺少 @".into());
+        }
+        // 编号形要么不带，要么就得是三段编号且与 from 同域——半截的（名字段 / 异域）直接拒收，
+        // 不让收件方在「算不算强锚」上猜。
+        if let Some(n) = self.from_numeric.as_deref() {
+            if !crate::address::is_numeric_triplet(n) {
+                return Err("信封 from_numeric 必须是编号形（组员号#小组号#主人号@域）".into());
+            }
+            let dom = |a: &str| a.rsplit_once('@').map(|(_, d)| d.trim().to_lowercase());
+            if dom(n) != dom(&self.from) {
+                return Err("信封 from_numeric 与 from 不同域".into());
+            }
         }
         // 卡片闭集：人数与抄送上限同口径，防对端用信封当广播载体。
         if self.participants.len() > MAX_ENVELOPE_PARTICIPANTS {
@@ -136,6 +152,15 @@ impl Envelope {
     pub fn kind(&self) -> Option<&str> {
         self.kind.as_deref().filter(|k| !k.is_empty())
     }
+
+    /// 已验签的编号形（只在 [`Self::validate`] 过了之后调用才有「已验签」的含义——签名覆盖整个 body）。
+    /// 空串视同没有。
+    pub fn verified_from_numeric(&self) -> Option<&str> {
+        self.from_numeric
+            .as_deref()
+            .map(str::trim)
+            .filter(|n| !n.is_empty() && crate::address::is_numeric_triplet(n))
+    }
 }
 
 #[cfg(test)]
@@ -146,6 +171,7 @@ mod tests {
         Envelope {
             id: "e1".into(),
             from: "a#x#1@a.test".into(),
+            from_numeric: None,
             to: "b#y#2@b.test".into(),
             subject: String::new(),
             body: "hi".into(),
@@ -161,6 +187,34 @@ mod tests {
             decision_for: None,
             outcome: None,
         }
+    }
+
+    /// 0.4.0：编号形可选；带了就必须是三段编号且与 from 同域；线上不出现即无。
+    #[test]
+    fn from_numeric_is_optional_but_strict_when_present() {
+        let wire = serde_json::to_value(base()).unwrap();
+        assert!(wire.get("from_numeric").is_none(), "旧对端看不到新字段");
+        assert_eq!(base().verified_from_numeric(), None);
+        let mut e = base();
+        e.from_numeric = Some("100550#100083#100001@a.test".into());
+        assert!(e.validate().is_ok());
+        assert_eq!(
+            e.verified_from_numeric(),
+            Some("100550#100083#100001@a.test")
+        );
+        let mut e = base();
+        e.from_numeric = Some("a#x#1@a.test".into());
+        assert!(e.validate().is_err(), "名字段不是编号形");
+        let mut e = base();
+        e.from_numeric = Some("1#2#3@b.test".into());
+        assert!(e.validate().is_err(), "异域");
+        let mut e = base();
+        e.from_numeric = Some("1#2@a.test".into());
+        assert!(e.validate().is_err(), "两段");
+        assert!(crate::address::is_numeric_triplet("1#2#3@A.test"));
+        assert!(!crate::address::is_numeric_triplet("1#2#3@"));
+        assert!(!crate::address::is_numeric_triplet("1#2#@a.test"));
+        assert!(!crate::address::is_numeric_triplet("1#2#3"));
     }
 
     #[test]

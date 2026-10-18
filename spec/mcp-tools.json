@@ -30,6 +30,10 @@
           "in_reply_to": {
             "type": "string"
           },
+          "from_numeric": {
+            "type": "string",
+            "description": "0.4.0（可选）：发件地址的编号形（组员号#小组号#主人号@域），与 from 同一发件人、同域；收件方据此落强锚。"
+          },
           "kind": {
             "type": "string",
             "enum": [

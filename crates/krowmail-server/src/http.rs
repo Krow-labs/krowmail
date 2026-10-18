@@ -82,6 +82,8 @@ struct SendBody {
     subject: String,
     thread_id: Option<String>,
     in_reply_to: Option<String>,
+    // 0.4.0 编号形（可选）：发件方知道自己的编号就带上；校验（三段编号、与 from 同域）在 Envelope::validate 一处。
+    from_numeric: Option<String>,
     // 0.3.0 协议位（可选）：校验在 Envelope::validate 一处。
     kind: Option<String>,
     due_at: Option<String>,
@@ -106,6 +108,7 @@ async fn send_mail(
     let envelope = Envelope {
         id: uuid::Uuid::new_v4().to_string(),
         from: from_addr,
+        from_numeric: req.from_numeric,
         to: to_addr.clone(),
         subject: req.subject,
         body: req.body,

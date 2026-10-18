@@ -40,6 +40,23 @@ pub struct OpenAddress {
     pub domain: String,
 }
 
+/// 地址是不是**编号形**：`组员号#小组号#主人号@域`，三段全是自动编号（ASCII 数字、非空）、域非空。
+/// 编号永不复用，所以编号形是能当身份锚的那一形；名字形会改名、会被别人自报，只是弱锚。
+/// 纯函数，不折叠：编号形本身没有大小写 / 零宽问题，带了零宽就不算。
+pub fn is_numeric_triplet(raw: &str) -> bool {
+    let Some((local, domain)) = raw.trim().rsplit_once('@') else {
+        return false;
+    };
+    if domain.is_empty() || domain.contains('@') {
+        return false;
+    }
+    let segs: Vec<&str> = local.split('#').collect();
+    segs.len() == 3
+        && segs
+            .iter()
+            .all(|s| !s.is_empty() && s.chars().all(|ch| ch.is_ascii_digit()))
+}
+
 pub fn fold_key(raw: &str) -> Option<String> {
     let mut out = String::new();
     for ch in raw.chars() {

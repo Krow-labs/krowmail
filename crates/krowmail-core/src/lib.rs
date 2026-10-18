@@ -7,7 +7,7 @@ mod sign;
 mod traits;
 
 pub use address::{
-    display_name_banned, fold_key, parse_open, parse_shorthand, parse_syntax,
+    display_name_banned, fold_key, is_numeric_triplet, parse_open, parse_shorthand, parse_syntax,
     validate_address_name, validate_user_handle, LegacyAddress, OpenAddress, Syntax,
 };
 pub use envelope::{
