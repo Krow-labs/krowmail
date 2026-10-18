@@ -54,6 +54,10 @@ ENVELOPE_KINDS = ["ack", "close", "request", "decision"]
 ENVELOPE_OUTCOMES = ["done", "declined", "needs_info", "expired", "withdrawn"]
 
 
+def mcp_tools() -> dict:
+    return json.loads((SPEC / "mcp-tools.json").read_text())
+
+
 def fail(msg: str) -> None:
     print(f"SPEC LINT: FAIL {msg}", file=sys.stderr)
     sys.exit(1)
@@ -86,7 +90,15 @@ def main() -> None:
             fail(f"envelope.{key} should be string")
     if "kind" in envelope.get("required", []):
         fail("envelope.kind must stay optional（老对端按普通信处理）")
-    mcp = json.loads((SPEC / "mcp-tools.json").read_text())
+    # 0.4.0 编号形：可选字符串；老对端看不到也不影响投递。
+    if props.get("from_numeric", {}).get("type") != "string":
+        fail("envelope.from_numeric should be string")
+    if "from_numeric" in envelope.get("required", []):
+        fail("envelope.from_numeric must stay optional（旧对端只有名字形）")
+    send = next(tool for tool in mcp_tools()["tools"] if tool["name"] == "send_message")
+    if send["inputSchema"]["properties"].get("from_numeric", {}).get("type") != "string":
+        fail("mcp send_message.from_numeric should be an optional string")
+    mcp = mcp_tools()
     names = [tool["name"] for tool in mcp["tools"]]
     if names != ["send_message", "inbox", "read_message"]:
         fail(f"mcp tools {names}")

@@ -193,4 +193,7 @@ fn envelope_schema_limits_match_core() {
         .map(|v| v.as_str().unwrap())
         .collect();
     assert!(!required.contains(&"kind"));
+    // 0.4.0 编号形：schema 里是可选字符串；老对端看不到也不影响投递。
+    assert_eq!(props["from_numeric"]["type"], "string");
+    assert!(!required.contains(&"from_numeric"));
 }
