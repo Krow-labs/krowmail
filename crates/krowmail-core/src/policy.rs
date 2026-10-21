@@ -1,10 +1,14 @@
-pub const MAX_CROSS_TEAM_SENDS: i64 = 10;
+/// 跨小组短窗硬限：同一发件人在 [`CROSS_TEAM_WINDOW_MINUTES`] 内发给同一收件小组的信数上限。
+/// 0.4.1 由 10 提到 100（与日限额同比例放宽）；低于它的「连发先升级复核」软阈由各实现自定。
+pub const MAX_CROSS_TEAM_SENDS: i64 = 100;
 pub const CROSS_TEAM_WINDOW_MINUTES: i32 = 10;
 /// 跨主人日限额：滚动 24 小时内，**同一发件主人名下全部小组**发给同一收件主人的信合计上限
 /// （按主人对聚合，不按组员、不按小组）。0.4.1 由 50 提到 1000：同一组织内多小组密集协同
 /// 时 50 封半天即满，把正常往来当成了滥用。
 pub const MAX_DAILY_OWNER_PAIR: i64 = 1000;
-pub const MAX_HOURLY_EXTERNAL: i64 = 30;
+/// 外部来信小时限：收件方（实际承载者）一小时内收到的外部来信上限。0.4.1 由 30 提到 300：
+/// 日限额放到 1000 后，30/小时会先于它成为密集协同的墙。
+pub const MAX_HOURLY_EXTERNAL: i64 = 300;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MailPolicy {
