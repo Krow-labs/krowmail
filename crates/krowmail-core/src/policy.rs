@@ -1,6 +1,9 @@
 pub const MAX_CROSS_TEAM_SENDS: i64 = 10;
 pub const CROSS_TEAM_WINDOW_MINUTES: i32 = 10;
-pub const MAX_DAILY_OWNER_PAIR: i64 = 50;
+/// 跨主人日限额：滚动 24 小时内，**同一发件主人名下全部小组**发给同一收件主人的信合计上限
+/// （按主人对聚合，不按组员、不按小组）。0.4.1 由 50 提到 1000：同一组织内多小组密集协同
+/// 时 50 封半天即满，把正常往来当成了滥用。
+pub const MAX_DAILY_OWNER_PAIR: i64 = 1000;
 pub const MAX_HOURLY_EXTERNAL: i64 = 30;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
