@@ -168,20 +168,38 @@
     {
       "id": "decide-rate-daily",
       "fn": "decide",
-      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 50, "hourly_inbox": 0 },
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 1000, "hourly_inbox": 0 },
       "expect": { "decision": "rate_daily" }
+    },
+    {
+      "id": "decide-rate-daily-below-cap",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 999, "hourly_inbox": 0 },
+      "expect": { "decision": "allow", "trust": "external" }
     },
     {
       "id": "decide-rate-hourly",
       "fn": "decide",
-      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 30 },
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 300 },
       "expect": { "decision": "rate_hourly" }
+    },
+    {
+      "id": "decide-rate-hourly-below-cap",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 0, "daily_pair": 0, "hourly_inbox": 299 },
+      "expect": { "decision": "allow", "trust": "external" }
     },
     {
       "id": "decide-rate-team",
       "fn": "decide",
-      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 10, "daily_pair": 0, "hourly_inbox": 0 },
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 100, "daily_pair": 0, "hourly_inbox": 0 },
       "expect": { "decision": "rate_team" }
+    },
+    {
+      "id": "decide-rate-team-below-cap",
+      "fn": "decide",
+      "input": { "same_owner": false, "flat_flag": false, "cross_open": true, "policy": "everyone", "known_contact": false, "blocked": false, "recent_to_team": 99, "daily_pair": 0, "hourly_inbox": 0 },
+      "expect": { "decision": "allow", "trust": "external" }
     },
     {
       "id": "decide-same-owner",
