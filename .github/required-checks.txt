@@ -1,0 +1,8 @@
+# 默认分支 `main` 的 required status checks —— 仓内镜像（与 krow-kad / hikos-gamedev 同一做法）。
+# 真正的事实在 GitHub 分支规则里；本文件是它在仓内的镜像，两边必须一起改（同一天）。
+# 一行一个 check 名，逐字等于某个带 `on: pull_request` 的 workflow 里 job 的 `name:`；# 开头是注释。
+# scripts/lint_governance.py G11 逐条核对；scripts/lint_workflows.py W6 另核这些 job 所在 workflow 的 pull_request 不带 paths 过滤。
+# 2026-11-08 Krow-labs 全仓对齐（任务 8393887e）：治理闸都在「governance lint」里；新增 check 名时先改分支规则再改本文件。
+constitution
+governance lint
+test

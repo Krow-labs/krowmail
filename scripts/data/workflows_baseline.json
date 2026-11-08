@@ -1,0 +1,9 @@
+{
+  "note": "W1–W6 存量基线（只降不升）。SSOT: scripts/lint_workflows.py；宪法 §0.2 F。条目逐字等于 lint 输出；修好一条就跑 --update-baseline 删掉它。",
+  "updated": "2026-11-08",
+  "tolerated": [
+    "W1: ci.yml job `test` 缺 timeout-minutes",
+    "W2: ci.yml job `test` 没有 permissions（顶层也没有）——GITHUB_TOKEN 缺省是宽权限",
+    "W3: ci.yml 带 pull_request 触发但没有 concurrency.cancel-in-progress: true"
+  ]
+}
