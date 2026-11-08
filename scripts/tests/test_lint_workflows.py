@@ -64,7 +64,8 @@ def test_w2_missing_permissions_everywhere(tmp_path: pathlib.Path):
 
 
 def test_w2_job_level_permissions_are_enough(tmp_path: pathlib.Path):
-    text = GOOD.replace("permissions: { contents: read }\n", "").replace("    timeout-minutes: 5\n", "    timeout-minutes: 5\n    permissions: { contents: read }\n")
+    text = GOOD.replace("permissions: { contents: read }\n", "")
+    text = text.replace("    timeout-minutes: 5\n", "    timeout-minutes: 5\n    permissions: { contents: read }\n")
     fails, _ = lw.lint(_repo(tmp_path, {"g.yml": text}))
     assert fails == []
 

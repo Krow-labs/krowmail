@@ -1,7 +1,6 @@
 """G11 的病理形态：required-checks.txt 里的名字必须能在 on: pull_request 的 workflow 里找到对应 job（含 matrix 展开名）。"""
 import importlib.util
 import pathlib
-import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("lint_governance", ROOT / "scripts" / "lint_governance.py")

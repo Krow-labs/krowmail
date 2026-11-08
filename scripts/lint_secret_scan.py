@@ -179,7 +179,8 @@ def _report(violations: list[Violation], where: str) -> None:
         print(f"  {v.file}:{v.line_no} [{v.kind}] token={v.token_preview} digest={v.token_digest}", file=sys.stderr)
     print(
         "\n  怎么过：① 真凭证 → 立即从文件移除并在供应商侧作废轮换；凭据只走 CI secrets（`gh secret set`）/ 用户级 gitignored 文件，\n"
-        f"  不经信件、不进代码；② 刻意构造的高熵假 key（测试 / 文档）→ 同一行加 `{ALLOW_PRAGMA}`；低熵占位符（含 test / fake / xxxx）本就不会触发，优先用它们。",
+        f"  不经信件、不进代码；② 刻意构造的高熵假 key（测试 / 文档）→ 同一行加 `{ALLOW_PRAGMA}`；",
+        "  低熵占位符（含 test / fake / xxxx）本就不会触发，优先用它们。",
         file=sys.stderr,
     )
 

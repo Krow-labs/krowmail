@@ -136,7 +136,8 @@ def lint(root: Path = REPO_ROOT) -> tuple[list[str], dict[str, str]]:
             m = re.match(r"^(.*) \((.+)\)$", w)
             if w in pr_job_names or (m and m.group(1) in pr_matrix_jobs):
                 continue
-            fails.append(f"W6: required check「{w}」不等于任何 on: pull_request 工作流里 job 的 name:（分支保护会永远等不到它；matrix job 写「<name> (<矩阵值>)」）")
+            fails.append(f"W6: required check「{w}」不等于任何 on: pull_request 工作流里 job 的 name:"
+                         "（分支保护会永远等不到它；matrix job 写「<name> (<矩阵值>)」）")
     return fails, names
 
 
@@ -163,7 +164,8 @@ def apply_baseline(fails: list[str], tolerated: list[str]) -> list[str]:
     out = [f for f in fails if f not in tol]
     stale = sorted(tol - set(fails))
     for s in stale:
-        out.append(f"BASELINE: 基线条目已修复但还在 scripts/data/workflows_baseline.json 里：「{s}」—— 跑 python3 scripts/lint_workflows.py --update-baseline 收紧棘轮")
+        out.append(f"BASELINE: 基线条目已修复但还在 scripts/data/workflows_baseline.json 里：「{s}」"
+                   "—— 跑 python3 scripts/lint_workflows.py --update-baseline 收紧棘轮")
     return out
 
 
