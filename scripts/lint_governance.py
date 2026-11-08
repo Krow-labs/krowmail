@@ -268,7 +268,8 @@ def g7_conftest(kit: dict, rep: Report) -> None:
     plugin_dir, _package = _plugin_paths(kit)
     conftest = plugin_dir / "tests" / "conftest.py"
     if not conftest.is_file() or "KROW_WORKSPACE" not in conftest.read_text(encoding="utf-8"):
-        rep.fail("G7", f"{plugin_dir.relative_to(REPO_ROOT) if plugin_dir.exists() else plugin_dir}/tests/conftest.py 没隔离 KROW_WORKSPACE（会把技能页 / 账本写进真实盘）")
+        shown = plugin_dir.relative_to(REPO_ROOT) if plugin_dir.exists() else plugin_dir
+        rep.fail("G7", f"{shown}/tests/conftest.py 没隔离 KROW_WORKSPACE（会把技能页 / 账本写进真实盘）")
 
 
 # ── G8 / G9：版本仪式与退役边界 ───────────────────────────────────────────────
@@ -298,7 +299,9 @@ def g8_versions(kit: dict, rep: Report) -> None:
             rep.fail("G8", f"内核 {pyproject} 缺 version")
         attr_file = str(core.get("version_attr_file") or "")
         if attr_file:
-            m = re.search(r'^__version__\s*=\s*"([^"]+)"', (REPO_ROOT / attr_file).read_text(encoding="utf-8"), flags=re.M) if (REPO_ROOT / attr_file).is_file() else None
+            attr_path = REPO_ROOT / attr_file
+            m = (re.search(r'^__version__\s*=\s*"([^"]+)"', attr_path.read_text(encoding="utf-8"), flags=re.M)
+                 if attr_path.is_file() else None)
             if not m or m.group(1) != cv:
                 rep.fail("G8", f"内核版本分叉：{pyproject} {cv!r} ≠ {attr_file} __version__ {m.group(1) if m else None!r}")
 
@@ -353,7 +356,8 @@ def g11_required_checks(rep: Report) -> None:
         m = re.match(r"^(.*) \((.+)\)$", n)
         if n in job_names or (m and m.group(1) in matrix_jobs):
             continue
-        rep.fail("G11", f"required check「{n}」不等于任何 on: pull_request 工作流里 job 的 name:（matrix job 写成「<name> (<矩阵值>)」）（分支保护会永远等不到它）")
+        rep.fail("G11", f"required check「{n}」不等于任何 on: pull_request 工作流里 job 的 name:"
+                       "（matrix job 写成「<name> (<矩阵值>)」；分支保护会永远等不到它）")
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -16,6 +16,9 @@ _SPEC.loader.exec_module(lss)
 # 对 scan_text 的直接调用无影响——用例里按需把标注放进被扫描的文本。
 HEX32 = "0123456789abcdef0123456789abcdef"
 GH36 = "A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8"
+# PEM 块头拆成两段拼出来：各仓自带的旧版秘密扫描（只认块头、不看密钥体）扫到本文件时不会误报。
+PEM_BEGIN = "-----BEGIN " + "{} PRIVATE KEY-----"
+PEM_END = "-----END " + "{} PRIVATE KEY-----"
 
 
 def kinds(text: str) -> list[str]:
@@ -26,7 +29,7 @@ def test_high_precision_shapes_are_unconditional():
     assert kinds(f'KEY = "sk-{HEX32}"') == ["deepseek-key"]  # secret-scan:allow
     assert kinds(f"token = 'ghp_{GH36}'") == ["github-token"]  # secret-scan:allow
     pem_body = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7" + "Q" * 12
-    assert kinds("-----BEGIN RSA PRIVATE KEY-----\n" + pem_body) == ["pem-private-key"]  # secret-scan:allow（块头 + 密钥体）
+    assert kinds(PEM_BEGIN.format("RSA") + "\n" + pem_body) == ["pem-private-key"]  # 块头 + 密钥体
     assert kinds("AKLT" + "Qm9ndXNCb2d1c0JvZ3VzQm9ndXM=") == ["volc-access-key"]  # secret-scan:allow
 
 
@@ -71,9 +74,9 @@ def test_multilang_suffixes_are_scanned(tmp_path):
 def test_pem_header_without_body_is_not_a_leak():
     """格式化常量 / 检测规则 / 断言里只有块头没有密钥体：不是泄漏（Krow-labs 适配）。"""
     src = (
-        'let (b, e) = ("-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");\n'
-        'secret_rule("-----BEGIN OPENSSH PRIVATE KEY-----"),\n'
-        'assert!(s.starts_with("-----BEGIN RSA PRIVATE KEY-----"));\n'
+        f'let (b, e) = ("{PEM_BEGIN.format("")}", "{PEM_END.format("")}");\n'.replace("  PRIVATE", " PRIVATE")
+        + f'secret_rule("{PEM_BEGIN.format("OPENSSH")}"),\n'
+        + f'assert!(s.starts_with("{PEM_BEGIN.format("RSA")}"));\n'
     )
     assert [v.kind for v in lss.scan_text("x.rs", src)] == []
 
@@ -81,9 +84,10 @@ def test_pem_header_without_body_is_not_a_leak():
 def test_pem_header_with_body_is_a_leak():
     """块头后紧跟 base64 密钥体（同行或 3 行内）→ 红；隔太远不算。"""
     body = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7" + "x" * 20
-    same_line = f'key = "-----BEGIN PRIVATE KEY-----\\n{body}\\n-----END PRIVATE KEY-----"\n'
+    hdr, end = PEM_BEGIN.format("").replace("  ", " "), PEM_END.format("").replace("  ", " ")
+    same_line = f'key = "{hdr}\\n{body}\\n{end}"\n'
     assert [v.kind for v in lss.scan_text("a.py", same_line)] == ["pem-private-key"]
-    next_lines = "-----BEGIN RSA PRIVATE KEY-----\n" + body + "\n-----END RSA PRIVATE KEY-----\n"
+    next_lines = PEM_BEGIN.format("RSA") + "\n" + body + "\n" + PEM_END.format("RSA") + "\n"
     assert [v.kind for v in lss.scan_text("b.pem.txt", next_lines)] == ["pem-private-key"]
-    far = "-----BEGIN RSA PRIVATE KEY-----\n\n\n\n" + body + "\n"
+    far = PEM_BEGIN.format("RSA") + "\n\n\n\n" + body + "\n"
     assert [v.kind for v in lss.scan_text("c.txt", far)] == []
