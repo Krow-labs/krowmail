@@ -1,0 +1,80 @@
+# 治理 CI（Krow-labs 便携治理包 krow-labs-governance-core/1；基准 aullik5/krow@30b5504f 的 lint.yml::governance-invariants /
+# secret-scan / test-naming 与 pr-base-guard.yml 在本仓的落法；任务 8393887e）。
+# 新闸全部 enforce 起步；存量 workflow 的 W1–W3 用 scripts/data/workflows_baseline.json 棘轮收编（只降不升）。
+name: governance
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: governance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONUTF8: "1"
+
+jobs:
+  constitution:
+    name: constitution
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: TURBO 宪法块逐字一致 + 本仓部分 ≤150 行
+        run: python scripts/check_constitution.py
+
+  governance:
+    name: governance lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pip install pyyaml pytest
+      - name: 治理脚本自测（每道闸先证明自己拦得住、放得过）
+        run: |
+          python -m pytest scripts/tests/test_lint_workflows.py scripts/tests/test_lint_secret_scan.py scripts/tests/test_check_pr_deletions_declared.py scripts/tests/test_lint_governance_g11.py -q -p no:cacheprovider
+          python scripts/test_lint_enforce_start.py
+      - name: G1–G11（非组员仓只有 G1 / G2 / G10 / G11 有主体）
+        run: python scripts/lint_governance.py
+      - name: W1–W6 workflow 卫生（存量基线只降不升）
+        run: python scripts/lint_workflows.py
+      - name: enforce 起步闸（warning-only 必须带到期日；enforce-by 不过期、不超 30 天）
+        run: python scripts/lint_enforce_start.py
+      - name: secret scan（git-tracked 文件禁真凭证）
+        run: python scripts/lint_secret_scan.py
+      - name: PR base 必须是 main（base≠默认分支的 PR 其余 workflow 一条都不跑；叠 PR 下层被 squash 后上层永久失去落地路径却照样显示 MERGED）
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          if [ "$BASE" != "main" ]; then
+            echo "::error::本 PR 的 base 是 \`$BASE\`，不是 \`main\`。改法：先 rebase 到 origin/main，再 gh pr edit <PR号> --base main"
+            exit 1
+          fi
+          echo "base = main"
+      - name: 取全量历史（PR-only 闸要算 merge-base）
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then git fetch --no-tags --unshallow origin; fi
+          git fetch --no-tags origin "+refs/heads/$BASE:refs/remotes/origin/$BASE"
+      - name: PR 正文落盘（走 env，不把作者可控文本直接展开进 shell）
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr_body.md"
+      - name: 删除必须在 PR 正文里逐条写明
+        if: github.event_name == 'pull_request'
+        run: python scripts/check_pr_deletions_declared.py --base "origin/${{ github.base_ref }}" --body-file "$RUNNER_TEMP/pr_body.md"

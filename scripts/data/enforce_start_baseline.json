@@ -1,0 +1,6 @@
+{
+  "note": "enforce 起步闸存量基线（只降不升）。SSOT: scripts/lint_enforce_start.py；宪法 §0.2 F。",
+  "updated": "2026-11-08",
+  "warning_only_unmarked": 0,
+  "default_off_flags": []
+}

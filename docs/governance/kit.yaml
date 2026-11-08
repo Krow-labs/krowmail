@@ -1,0 +1,23 @@
+# Krow-labs 便携治理包 · 参数文件（scripts/lint_governance.py 读；脚本与 hikos-gamedev / krow-kad 同源，仓库差异只在这里）
+kit: krow-labs-governance-core/1
+repo: Krow-labs/krowmail
+baseline_upstream: aullik5/krow@30b5504f027617f9da661918d7614ae4540ac7c1   # 研发纪律与元规则基准提交（默认分支 main，2026-11-08）
+constitution_upstream:
+  - Krow-labs/krow-bio:docs/constitution/TURBO.md   # TURBO 宪法权威文本（AGENTS.md 宪法块逐字收录，scripts/check_constitution.py 钉哈希）
+
+# 非 klik 组员仓：不写 teammate 段 → lint_governance.py 跳过 G3–G8（没有被检对象）；出现组员插件时按 krow-kad 的 teammate 段补上并在 decisions.md 立条目。
+
+legacy:
+  modules: []
+  import_tokens: []
+
+# AGENTS.md 的灵魂关键词（G1：squash / 重写后缺一个就红）
+invariants:
+  - 半边墙
+  - enforce 起步
+  - lint_secret_scan
+  - required-checks.txt
+  - 不叠 PR
+
+limits:
+  agents_md_lines: {soft: 120, hard: 160}   # 不计宪法块（check_constitution.py 另有本仓预算，同口径）

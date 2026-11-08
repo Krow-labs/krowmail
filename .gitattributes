@@ -1,0 +1,29 @@
+# 跨平台字节保真（与 krow-kad / hikos-gamedev 同一做法；母仓 line-ending.mdc：读时归一 LF、写回原样，禁整文件 CRLF↔LF 返工）。
+* text=auto eol=lf
+
+# 二进制：不判定、不转换、不 diff。
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.whl  binary
+*.tar  binary
+*.gz   binary
+*.zip  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.glb  binary
+*.gltf binary
+*.mp3  binary
+*.mp4  binary
+*.wav  binary
+*.jar  binary
+*.so   binary
+*.dylib binary
+*.dll  binary
+*.exe  binary

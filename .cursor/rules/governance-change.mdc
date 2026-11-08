@@ -1,0 +1,20 @@
+---
+description: 改治理面（workflow / 治理脚本 / AGENTS.md / .mdc / docs/governance）时的纪律：同源脚本不单仓改、宪法块不改、required check 与分支规则同日同步、新闸 enforce 起步（软化必带 enforce-by ≤ 30 天）、新 workflow 必登记、元规则改动独立 PR、治理 PR 先看到新闸全绿再合。Use when editing .github/**, scripts/*.py, scripts/*.sh, docs/governance/**, AGENTS.md, CONTRIBUTING.md or .cursor/rules/*.mdc.
+globs: .github/**,scripts/*.py,scripts/*.sh,scripts/data/*.json,docs/governance/**,AGENTS.md,CONTRIBUTING.md,.cursor/rules/*.mdc
+alwaysApply: false
+---
+
+# 改治理面的纪律（母仓 `aullik5/krow` 研发纪律第七节 / 修订协议第十二节 与 ci-workflow-governance 规则在本仓的落法）
+
+1. **先分清三类文件**
+   - 同源治理包（与 hikos-gamedev / krow-kad 同源，Krow-labs 便携治理包 `krow-labs-governance-core/1`）：`scripts/check_constitution.py` `lint_governance.py` `lint_workflows.py` `lint_secret_scan.py` `check_pr_deletions_declared.py` `lint_enforce_start.py`。**不在本仓单独改判据**——要改去同批改遍各仓；本仓差异只写 `docs/governance/kit.yaml` / `scripts/data/*.json`。
+   - 本仓独立闸（若有）：改判据必须同 PR 改病理形态用例（坏实现能过全部健康用例、过不了它）。
+   - 宪法块（`AGENTS.md` 的 `<!-- krow:constitution:begin/end -->`）：不改；红了去把各仓改齐，不改哈希将就。
+2. **required check 与分支规则同日同步**：`.github/required-checks.txt` 每行逐字等于某个 `on: pull_request` 工作流里 job 的 `name:`（G11）；增删 required check 要同一天改 GitHub ruleset `main`（admin 操作，写进 PR 正文谁来改）。新闸优先接进**已经是 required** 的 job「governance lint」（不新增 check 名 = 不动分支规则、当天 enforce、不卡别人在途 PR）。
+3. **新闸 enforce 起步**（宪法 §0.2 F）：不写 `continue-on-error: true`、不 `|| true`、不「先 notice 后绿」。确需软化：同一步骤块内写 `enforce-by: YYYY-MM-DD`（≤ 30 天，到期即红）/ `retire-when: <条件>` / `not-a-gate: <理由>`，`scripts/lint_enforce_start.py` 守。
+4. **workflow 卫生**（`scripts/lint_workflows.py` W1–W6）：每个 job `timeout-minutes`；顶层或每 job `permissions`；PR 工作流 `concurrency.cancel-in-progress: true`；新 workflow 文件名登记进 `CONTRIBUTING.md` CI 表；`workflow_run.workflows` 写目标 `name:` 逐字原文；required job 所在工作流的 `pull_request` 不带 `paths:` 过滤。
+5. **AGENTS.md 预算**：宪法外 ≤ 150 行（G1 软 120 / 硬 160）。要加的内容先问「90% 的会话需要它吗」：否 → 进 `.cursor/rules/*.mdc` 或 `docs/governance/`，AGENTS.md 只留一行指针。灵魂关键词在 `kit.yaml invariants`，删关键词要同 PR 改它并在正文说明理由。
+6. **新 `.mdc`**：frontmatter 要 `description` + `globs`（逗号分隔字符串）或 `alwaysApply: true`；`globs` 必须匹配到真实文件；在 `AGENTS.md` 登记文件名（G2，不登记 = 不存在）。
+7. **元规则改动独立 PR**：`AGENTS.md` / `.cursor/rules/` / `.github/` / `scripts/` / `docs/governance/` 的改动不与业务改动混；治理 PR 自身要先在分支上看到新增 / 改动的 workflow **全绿**再合，admin merge 是兜底不是常规。
+8. **删除要留痕**：PR 删掉的文件逐条写进正文（`scripts/check_pr_deletions_declared.py`，PR-only）；退役模块在 `docs/governance/decisions.md` 点名（G9）。
+9. **开火不留账是红线**（宪法 §0.2 I）：治理 PR 不碰发布 / 部署 workflow 的开火语义；需要发布走本仓既有发布机制并在 PR 里写明谁、为什么。

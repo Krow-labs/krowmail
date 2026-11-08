@@ -1,0 +1,23 @@
+{
+  "note": "enforce 起步闸配置（规则见 scripts/lint_enforce_start.py 模块 docstring；该脚本是 Krow-labs 各仓同一份文件，权威副本在 krow-bio，本仓只改这份配置）。本仓生效规则 1（warning-only CI 步骤必须带期限）与规则 2（enforce-by 不过期、不超 30 天）；规则 3 默认关开关 flags 为空——出现第一个真正的布尔开关时在这里加 pattern；部署清单不在本仓，不做 configmap_drift。",
+  "workflows_dir": ".github/workflows",
+  "marker_exts": [
+    ".py",
+    ".yml",
+    ".yaml",
+    ".sh",
+    ".toml",
+    ".md",
+    ".mdc",
+    ".rs",
+    ".go",
+    ".ts",
+    ".js",
+    ".swift",
+    ".kt"
+  ],
+  "marker_skip": [
+    "docs/governance/decisions.md"
+  ],
+  "flags": []
+}
