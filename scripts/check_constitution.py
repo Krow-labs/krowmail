@@ -41,7 +41,7 @@ END = "<!-- krow:constitution:end -->"
 
 #: 权威摘要。权威文本在 `Krow-labs/krow-bio: docs/constitution/TURBO.md`。
 #: **改宪法时这个常量要跟着改，而且必须与其它仓同一批次改。**
-CANONICAL_DIGEST = "ada93a23921620672e2de50ef39888f8f43529fbcce0c0e7be9b8dcc60452c3e"
+CANONICAL_DIGEST = "183f34b989574f5bd80266e2a380eaa06c51554eac6613838b49d46e826fbcc4"
 
 #: 宪法块以外的行数上限，见 §7。宪法块不计入——理由见模块 docstring「闸二」。
 LOCAL_LINE_BUDGET = 150
