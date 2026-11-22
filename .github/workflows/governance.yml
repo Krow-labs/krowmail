@@ -22,7 +22,7 @@ env:
 jobs:
   constitution:
     name: constitution
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON(vars.KROW_CI_TABLE || '{}')[format('light@{0}{1}', github.event_name, github.event.pull_request.draft && '-draft' || '')] || fromJSON(vars.KROW_CI_TABLE || '{}')['light'] || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
 
   governance:
     name: governance lint
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON(vars.KROW_CI_TABLE || '{}')[format('light@{0}{1}', github.event_name, github.event.pull_request.draft && '-draft' || '')] || fromJSON(vars.KROW_CI_TABLE || '{}')['light'] || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +49,8 @@ jobs:
         run: python scripts/lint_governance.py
       - name: W1–W6 workflow 卫生（存量基线只降不升）
         run: python scripts/lint_workflows.py
+      - name: runs-on 只写类别（CI 统一调度；本仓的 job 已全部接入，没有基线）
+        run: python scripts/ci_runs_on.py check
       - name: enforce 起步闸（warning-only 必须带到期日；enforce-by 不过期、不超 30 天）
         run: python scripts/lint_enforce_start.py
       - name: secret scan（git-tracked 文件禁真凭证）

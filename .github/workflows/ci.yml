@@ -5,7 +5,7 @@ on:
     branches: [main]
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-24.04' || fromJSON(vars.KROW_CI_TABLE || '{}')[format('heavy@{0}{1}', github.event_name, github.event.pull_request.draft && '-draft' || '')] || fromJSON(vars.KROW_CI_TABLE || '{}')['heavy'] || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
