@@ -21,6 +21,7 @@ step "治理脚本自测" "$PY" -m pytest scripts/tests/test_lint_workflows.py s
 step "enforce 起步闸自测" "$PY" scripts/test_lint_enforce_start.py
 step "G 系列（--strict：WARN 也红）" "$PY" scripts/lint_governance.py --strict
 step "W1–W6 workflow 卫生" "$PY" scripts/lint_workflows.py
+step "runs-on 只写类别" "$PY" scripts/ci_runs_on.py check
 step "enforce 起步闸" "$PY" scripts/lint_enforce_start.py
 step "secret scan" "$PY" scripts/lint_secret_scan.py
 
