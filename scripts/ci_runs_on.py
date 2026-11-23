@@ -156,7 +156,8 @@ def jobs_of(text: str) -> list[dict]:
     lines = text.splitlines()
     roots = [i for i, ln in enumerate(lines) if re.match(r"""^(?:jobs|'jobs'|"jobs")\s*:""", ln)]
     if len(roots) != 1 or not re.fullmatch(r"jobs:\s*(#.*)?", lines[roots[0]]):
-        raise WorkflowError("需要唯一的、可识别的顶层 jobs: 块")
+        where = f"第 {roots[-1] + 1} 行：" if roots else ""
+        raise WorkflowError(f"{where}需要唯一的、可识别的顶层 jobs: 块")
     start = roots[0]
     out: list[dict] = []
     job_indent = key_indent = None
