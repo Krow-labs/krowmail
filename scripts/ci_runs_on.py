@@ -30,7 +30,7 @@ import re
 import sys
 
 #: 本文件的版本。各仓的副本与 krowworker 的 scripts/ci/ci_runs_on.py 逐字相同；改了判据或闭集就加一，各仓同批换。
-VERSION = "ci-runs-on/1"
+VERSION = "ci-runs-on/2"
 #: 类别闭集。加类别要同时改调度器的表（ci_dispatch_table.json）；这里不认识的类别名一律算没接入。
 CATEGORIES = ("light", "heavy", "browser", "docker", "vm", "long", "release", "macos", "windows")
 TABLE_VAR = "KROW_CI_TABLE"
@@ -143,17 +143,22 @@ def _flow_list(value: str) -> list[str]:
     return [_unquote(x) for x in value.strip()[1:-1].split(",") if x.strip()]
 
 
+class WorkflowError(ValueError):
+    """工作流结构无法安全枚举。"""
+
+
 def jobs_of(text: str) -> list[dict]:
     """工作流文本 → [{"job", "line", "runs_on"（字符串 / 列表 / None）, "uses"（调用可复用工作流时的目标）}]。
 
-    只认块状写法（GitHub 上的工作流都是这样写的）：顶层 jobs: 下面第一层缩进是 job 名，job 下面第一层缩进里的 runs-on / uses。
+    只认块状写法（认不出的 job 结构报错）：顶层 jobs: 下面第一层缩进是 job 名，job 下面第一层缩进里的 runs-on / uses。
     runs-on 的值可以是单行标量、单行 [a, b]、下面几行的「- a」列表、或者 > / | 开头的折行标量。
     """
     lines = text.splitlines()
-    try:
-        start = next(i for i, ln in enumerate(lines) if re.match(r"^jobs:\s*(#.*)?$", ln))
-    except StopIteration:
-        return []
+    roots = [i for i, ln in enumerate(lines) if re.match(r"""^(?:jobs|'jobs'|"jobs")\s*:""", ln)]
+    if len(roots) != 1 or not re.fullmatch(r"jobs:\s*(#.*)?", lines[roots[0]]):
+        where = f"第 {roots[-1] + 1} 行：" if roots else ""
+        raise WorkflowError(f"{where}需要唯一的、可识别的顶层 jobs: 块")
+    start = roots[0]
     out: list[dict] = []
     job_indent = key_indent = None
     cur: dict | None = None
@@ -171,15 +176,15 @@ def jobs_of(text: str) -> list[dict]:
             job_indent = indent
         if indent == job_indent:
             m = re.match(r"^([A-Za-z_][A-Za-z0-9_-]*):\s*(#.*)?$", body)
-            cur = {"job": m.group(1), "line": i + 1, "runs_on": None, "uses": None} if m else None
-            if cur:
-                out.append(cur)
+            if not m:
+                raise WorkflowError(f"第 {i + 1} 行不是可识别的块状 job")
+            cur = {"job": m.group(1), "line": i + 1, "runs_on": None, "uses": None}
+            out.append(cur)
             key_indent = None
             i += 1
             continue
         if cur is None or indent < job_indent:
-            i += 1
-            continue
+            raise WorkflowError(f"第 {i + 1} 行 job 缩进异常")
         if key_indent is None:
             key_indent = indent
         if indent == key_indent:
@@ -210,6 +215,8 @@ def jobs_of(text: str) -> list[dict]:
                 else:
                     cur["runs_on"] = _unquote(value)
         i += 1
+    if not out:
+        raise WorkflowError("jobs: 块没有可识别的 job")
     return out
 
 
@@ -229,7 +236,11 @@ def scan(paths: list[str]) -> list[dict]:
     for path in workflow_files(paths):
         with open(path, encoding="utf-8") as f:
             text = f.read()
-        for j in jobs_of(text):
+        try:
+            jobs = jobs_of(text)
+        except WorkflowError as exc:
+            raise WorkflowError(f"{path}: {exc}") from exc
+        for j in jobs:
             if j["uses"] and j["runs_on"] is None:
                 continue
             rows.append({"file": os.path.basename(path), "job": j["job"], "line": j["line"], "raw": j["runs_on"], **classify(j["runs_on"])})
@@ -276,7 +287,11 @@ def main(argv: list[str]) -> int:
             update = True
         else:
             paths.append(a)
-    rows = scan(paths)
+    try:
+        rows = scan(paths)
+    except WorkflowError as exc:
+        print(f"[{VERSION}] ::error::{exc}", file=sys.stderr)
+        return 1
     if cmd == "list":
         for r in rows:
             print(f"{r['file']}\t{r['job']}\t{'managed' if r['managed'] else r['kind']}\t{r['category'] or r['why']}")
