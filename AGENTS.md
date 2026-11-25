@@ -177,6 +177,7 @@
 - 小批次：一个 PR 一件事；治理面（本文件、`.cursor/rules/`、`.github/`、`scripts/`、`docs/governance/`）改动独立 PR，不与业务改动混。
 - 必需检查见 `.github/required-checks.txt`（与 GitHub 分支规则同日同步改）；红了修代码，不改闸；新闸优先接进已是 required 的 job。
 - 合并走正常闸门：CI 全绿 + 非作者评审后 squash 合并；admin 旁路只是兜底，用了要在 PR 里写明理由与授权出处。
+- **开 PR 就开 auto-merge**：任何 PR 创建后必须立即开启 auto-merge，合并方式使用仓库默认。未开启 auto-merge 的 PR 视为未完成提交。
 
 ### 来源诚实与不可信数据边界
 
